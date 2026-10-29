@@ -3,8 +3,11 @@ FROM maven:3.9-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
-# Copy everything first
-COPY . .
+# Copy pom.xml first to leverage Docker cache
+COPY pom.xml .
+
+# Copy source code
+COPY src ./src
 
 # Build the application
 RUN mvn clean package -DskipTests

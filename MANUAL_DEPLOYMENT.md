@@ -39,8 +39,8 @@ This guide provides step-by-step instructions to deploy GrowthOS to Render manua
    - **Name**: `growthos-backend`
    - **Branch**: `main`
    - **Runtime**: Docker
-   - **Docker Context**: `./backend`
-   - **Dockerfile Path**: `./backend/Dockerfile`
+   - **Docker Context**: `.`
+   - **Dockerfile Path**: `./Dockerfile.backend`
    - **Plan**: Free
    - **Region**: (same as PostgreSQL)
 5. Scroll down to **"Environment Variables"**
@@ -77,8 +77,8 @@ This guide provides step-by-step instructions to deploy GrowthOS to Render manua
    - **Name**: `growthos-frontend`
    - **Branch**: `main`
    - **Runtime**: Docker
-   - **Docker Context**: `./frontend`
-   - **Dockerfile Path**: `./frontend/Dockerfile`
+   - **Docker Context**: `.`
+   - **Dockerfile Path**: `./Dockerfile.frontend`
    - **Plan**: Free
    - **Region**: (same as PostgreSQL and backend)
 5. Scroll down to **"Environment Variables"**
