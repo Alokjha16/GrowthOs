@@ -3,6 +3,7 @@ services:
   - type: pserv
     name: growthos-postgres
     plan: free
+    runtime: postgresql
     envVars:
       - key: POSTGRES_USER
         value: postgres
@@ -24,10 +25,7 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: SPRING_DATASOURCE_URL
-        fromService:
-          type: pserv
-          name: growthos-postgres
-          property: internalUrl
+        value: postgres://postgres:postgres@${growthos-postgres.PGHOST}:${growthos-postgres.PGPORT}/growthos
       - key: SPRING_DATASOURCE_USERNAME
         value: postgres
       - key: SPRING_DATASOURCE_PASSWORD
@@ -49,15 +47,9 @@ services:
       - key: PORT
         value: 3000
       - key: DATABASE_URL
-        fromService:
-          type: pserv
-          name: growthos-postgres
-          property: internalUrl
+        value: postgres://postgres:postgres@${growthos-postgres.PGHOST}:${growthos-postgres.PGPORT}/growthos
       - key: DIRECT_URL
-        fromService:
-          type: pserv
-          name: growthos-postgres
-          property: internalUrl
+        value: postgres://postgres:postgres@${growthos-postgres.PGHOST}:${growthos-postgres.PGPORT}/growthos
       - key: NEXT_PUBLIC_APP_NAME
         value: GrowthOS
       - key: NEXT_PUBLIC_APP_URL
