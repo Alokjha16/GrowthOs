@@ -1,0 +1,325 @@
+// GrowthOS — prisma/schema.prisma
+// PostgreSQL + Supabase Connection Pooler
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")    // Port 6543 — transaction pooler (runtime queries)
+  directUrl = env("DIRECT_URL")      // Port 5432 — session pooler (schema migrations)
+}
+
+// ─────────────────────────────────
+// ENUMS
+// ─────────────────────────────────
+
+enum AnalysisStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum SimulationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum ReportType {
+  DIAGNOSIS
+  SIMULATION
+  EXECUTIVE_SUMMARY
+}
+
+enum BusinessType {
+  ECOMMERCE
+  RETAIL
+  RESTAURANT
+  SALON
+  CONSULTING
+  FITNESS
+  HEALTHCARE
+  AGENCY
+  OTHER
+}
+
+enum PricingLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum FulfillmentMethod {
+  SELF_FULFILLED
+  THREE_PL
+  DROPSHIPPING
+  HYBRID
+}
+
+// ─────────────────────────────────
+// USER & AUTH
+// ─────────────────────────────────
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String?
+  password      String?
+  emailVerified DateTime?
+  image         String?
+
+  businesses    Business[]
+  analyses      Analysis[]
+  simulations   Simulation[]
+  reports       Report[]
+
+  accounts      Account[]
+  sessions      Session[]
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+// ─────────────────────────────────
+// BUSINESS / STORE PROFILE
+// ─────────────────────────────────
+
+model Business {
+  id                       String            @id @default(cuid())
+  userId                   String
+
+  name                     String
+  businessType             BusinessType      @default(ECOMMERCE)
+  industry                 String?
+  website                  String?
+  description              String?
+
+  monthlyRevenue           Decimal?          @db.Decimal(14, 2)
+  monthlyExpenses          Decimal?          @db.Decimal(14, 2)
+  customersPerMonth        Int?
+  repeatCustomerPercentage Int?
+
+  marketingChannels        String[]          @default([])
+  pricingLevel             PricingLevel
+
+  employeeCount            Int?
+  healthScore              Int?
+
+  averageOrderValue        Decimal?          @db.Decimal(10, 2)
+  customerAcquisitionCost  Decimal?          @db.Decimal(10, 2)
+  returnOnAdSpend          Decimal?          @db.Decimal(6, 2)
+  cartAbandonmentRate      Int?
+  inventoryTurnover        Decimal?          @db.Decimal(6, 2)
+  fulfillmentMethod        FulfillmentMethod?
+  returnRatePercentage     Int?
+
+  // ── India-specific metrics ──────────────────────────────
+  codRate                  Int?              // Cash on Delivery % (0–100)
+  rtoRate                  Int?              // Return to Origin % (0–100)
+  prepaidPercentage        Int?              // % of orders prepaid
+
+  user                     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  analyses                 Analysis[]
+  simulations              Simulation[]
+  reports                  Report[]
+  snapshots                BusinessSnapshot[]
+
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([businessType])
+}
+
+// ─────────────────────────────────
+// HISTORICAL SNAPSHOTS
+// ─────────────────────────────────
+
+model BusinessSnapshot {
+  id                       String   @id @default(cuid())
+  businessId               String
+
+  revenue                  Decimal? @db.Decimal(14, 2)
+  expenses                 Decimal? @db.Decimal(14, 2)
+  customers                Int?
+  repeatRate               Int?
+  healthScore              Int?
+
+  averageOrderValue        Decimal? @db.Decimal(10, 2)
+  customerAcquisitionCost  Decimal? @db.Decimal(10, 2)
+  returnOnAdSpend          Decimal? @db.Decimal(6, 2)
+  cartAbandonmentRate      Int?
+  codRate                  Int?
+  rtoRate                  Int?
+
+  business                 Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdAt                DateTime @default(now())
+
+  @@index([businessId, createdAt])
+}
+
+// ─────────────────────────────────
+// ANALYSIS — 7-Agent Diagnosis Run
+// ─────────────────────────────────
+
+model Analysis {
+  id              String         @id @default(cuid())
+  businessId      String
+  createdById     String?
+
+  status          AnalysisStatus @default(PENDING)
+  healthScore     Int?
+
+  summary         Json?
+  agents          Json?
+  inputSnapshot   Json?
+
+  business        Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdBy       User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  reports         Report[]
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([businessId, createdAt])
+  @@index([createdById])
+}
+
+// ─────────────────────────────────
+// SIMULATION — Strategy Simulator Run
+// ─────────────────────────────────
+
+model Simulation {
+  id               String           @id @default(cuid())
+  businessId       String
+  createdById      String?
+
+  status           SimulationStatus @default(PENDING)
+  strategy         String
+
+  shortTermOutcome Json?
+  longTermOutcome  Json?
+  risks            Json?
+  opportunities    Json?
+  confidenceScore  Int?
+
+  business         Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdBy        User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  reports          Report[]
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([businessId, createdAt])
+  @@index([createdById])
+}
+
+// ─────────────────────────────────
+// REPORT — Executive CEO Report
+// ─────────────────────────────────
+
+model Report {
+  id               String      @id @default(cuid())
+  businessId       String
+  createdById      String?
+  analysisId       String?
+  simulationId     String?
+
+  type             ReportType
+  title            String
+  executiveSummary String?
+  chiefRisk        String?
+  topOpportunity   String?
+  immediateAction  String?
+  actionPlan       Json?
+
+  business         Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  createdBy        User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  analysis         Analysis?   @relation(fields: [analysisId], references: [id], onDelete: SetNull)
+  simulation       Simulation? @relation(fields: [simulationId], references: [id], onDelete: SetNull)
+
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([businessId, createdAt])
+  @@index([analysisId])
+  @@index([simulationId])
+}
+
+// ─────────────────────────────────
+// NEXTAUTH ADAPTER TABLES
+// ─────────────────────────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────────────────────────
+// AGENT FEEDBACK — Training Data
+// ─────────────────────────────────
+
+model AgentFeedback {
+  id         String   @id @default(cuid())
+  analysisId String
+  agentName  String
+  rating     Int      // 1 = not useful · 5 = very useful
+  comment    String?
+  userId     String
+  createdAt  DateTime @default(now())
+
+  @@index([analysisId])
+  @@index([userId])
+}
+
+// ─────────────────────────────────
+// RAG — Knowledge Base
+// ─────────────────────────────────
+
+model KnowledgeChunk {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  source    String   // e.g. "shiprocket_annual_report", "indian_d2c_playbook"
+  category  String   // "marketing" | "operations" | "finance" | "retention"
+  industry  String?  // "APPAREL" | "BEAUTY" etc — null means all industries
+  createdAt DateTime @default(now())
+
+  @@index([category])
+  @@index([industry])
+}
