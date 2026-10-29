@@ -3,14 +3,8 @@ services:
   - type: pserv
     name: growthos-postgres
     plan: free
-    runtime: postgresql
-    envVars:
-      - key: POSTGRES_USER
-        value: postgres
-      - key: POSTGRES_PASSWORD
-        value: postgres
-      - key: POSTGRES_DB
-        value: growthos
+    databaseName: growthos
+    user: postgres
 
   # Spring Boot Backend
   - type: web
@@ -25,11 +19,17 @@ services:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: SPRING_DATASOURCE_URL
-        value: postgres://postgres:postgres@${growthos-postgres.PGHOST}:${growthos-postgres.PGPORT}/growthos
+        fromService:
+          type: pserv
+          name: growthos-postgres
+          property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
         value: postgres
       - key: SPRING_DATASOURCE_PASSWORD
-        value: postgres
+        fromService:
+          type: pserv
+          name: growthos-postgres
+          property: dbPassword
       - key: SPRING_JPA_DATABASE_PLATFORM
         value: org.hibernate.dialect.PostgreSQLDialect
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
@@ -47,9 +47,15 @@ services:
       - key: PORT
         value: 3000
       - key: DATABASE_URL
-        value: postgres://postgres:postgres@${growthos-postgres.PGHOST}:${growthos-postgres.PGPORT}/growthos
+        fromService:
+          type: pserv
+          name: growthos-postgres
+          property: connectionString
       - key: DIRECT_URL
-        value: postgres://postgres:postgres@${growthos-postgres.PGHOST}:${growthos-postgres.PGPORT}/growthos
+        fromService:
+          type: pserv
+          name: growthos-postgres
+          property: connectionString
       - key: NEXT_PUBLIC_APP_NAME
         value: GrowthOS
       - key: NEXT_PUBLIC_APP_URL
