@@ -1,0 +1,72 @@
+services:
+  # PostgreSQL Database
+  - type: pserv
+    name: growthos-postgres
+    env: docker
+    plan: free
+    disk:
+      name: data
+      mountPath: /var/lib/postgresql/data
+    envVars:
+      - key: POSTGRES_USER
+        value: postgres
+      - key: POSTGRES_PASSWORD
+        value: postgres
+      - key: POSTGRES_DB
+        value: growthos
+
+  # Spring Boot Backend
+  - type: web
+    name: growthos-backend
+    env: docker
+    plan: free
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: SPRING_DATASOURCE_URL
+        fromService:
+          type: pserv
+          name: growthos-postgres
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        value: postgres
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: postgres
+      - key: SPRING_JPA_DATABASE_PLATFORM
+        value: org.hibernate.dialect.PostgreSQLDialect
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+    healthCheckPath: /api/health
+
+  # Next.js Frontend
+  - type: web
+    name: growthos-frontend
+    env: docker
+    plan: free
+    dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: DATABASE_URL
+        fromService:
+          type: pserv
+          name: growthos-postgres
+          property: connectionString
+      - key: DIRECT_URL
+        fromService:
+          type: pserv
+          name: growthos-postgres
+          property: connectionString
+      - key: NEXT_PUBLIC_APP_NAME
+        value: GrowthOS
+      - key: NEXT_PUBLIC_APP_URL
+        value: https://growthos-frontend.onrender.com
+      - key: NEXTAUTH_URL
+        value: https://growthos-frontend.onrender.com
+      - key: NEXTAUTH_SECRET
+        generateValue: true
