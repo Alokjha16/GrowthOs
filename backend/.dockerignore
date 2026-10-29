@@ -1,9 +1,6 @@
 target
-.mvn
-mvnw
-mvnw.cmd
-HELP.md
 .git
 .gitignore
+HELP.md
 README.md
 *.md
