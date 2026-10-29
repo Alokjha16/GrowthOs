@@ -2,11 +2,7 @@ services:
   # PostgreSQL Database
   - type: pserv
     name: growthos-postgres
-    env: docker
     plan: free
-    disk:
-      name: data
-      mountPath: /var/lib/postgresql/data
     envVars:
       - key: POSTGRES_USER
         value: postgres
@@ -31,7 +27,7 @@ services:
         fromService:
           type: pserv
           name: growthos-postgres
-          property: connectionString
+          property: internalUrl
       - key: SPRING_DATASOURCE_USERNAME
         value: postgres
       - key: SPRING_DATASOURCE_PASSWORD
@@ -56,12 +52,12 @@ services:
         fromService:
           type: pserv
           name: growthos-postgres
-          property: connectionString
+          property: internalUrl
       - key: DIRECT_URL
         fromService:
           type: pserv
           name: growthos-postgres
-          property: connectionString
+          property: internalUrl
       - key: NEXT_PUBLIC_APP_NAME
         value: GrowthOS
       - key: NEXT_PUBLIC_APP_URL
