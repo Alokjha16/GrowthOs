@@ -1,6 +1,6 @@
 package com.tcet.growthos.controller;
 
-import com.tcet.growthos.model.DiagnosisReport;
+import com.tcet.growthos.entity.DiagnosisReport;
 import com.tcet.growthos.service.DiagnosisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

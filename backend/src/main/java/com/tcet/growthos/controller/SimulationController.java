@@ -1,6 +1,6 @@
 package com.tcet.growthos.controller;
 
-import com.tcet.growthos.model.Simulation;
+import com.tcet.growthos.entity.Simulation;
 import com.tcet.growthos.service.SimulationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

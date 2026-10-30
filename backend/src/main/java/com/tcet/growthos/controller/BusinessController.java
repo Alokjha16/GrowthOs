@@ -1,6 +1,6 @@
 package com.tcet.growthos.controller;
 
-import com.tcet.growthos.model.Business;
+import com.tcet.growthos.entity.Business;
 import com.tcet.growthos.service.BusinessService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

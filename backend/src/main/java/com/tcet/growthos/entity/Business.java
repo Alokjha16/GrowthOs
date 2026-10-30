@@ -1,4 +1,4 @@
-package com.tcet.growthos.model;
+package com.tcet.growthos.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

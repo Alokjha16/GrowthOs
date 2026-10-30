@@ -1,7 +1,7 @@
 package com.tcet.growthos.service;
 
-import com.tcet.growthos.model.Business;
-import com.tcet.growthos.model.Simulation;
+import com.tcet.growthos.entity.Business;
+import com.tcet.growthos.entity.Simulation;
 import com.tcet.growthos.repository.BusinessRepository;
 import com.tcet.growthos.repository.SimulationRepository;
 import lombok.RequiredArgsConstructor;

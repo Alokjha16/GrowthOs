@@ -14,7 +14,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const existing = await db.user.findUnique({ where: { email } });
+    const cleanEmail = String(email).trim().toLowerCase();
+    const cleanName = String(name).trim();
+
+    const existing = await db.user.findUnique({ where: { email: cleanEmail } });
     if (existing) {
       return NextResponse.json(
         { error: "An account with this email already exists" },
@@ -25,7 +28,7 @@ export async function POST(req: NextRequest) {
     const hashedPassword = await bcryptjs.hash(password, 12);
 
     const user = await db.user.create({
-      data: { name, email, password: hashedPassword },
+      data: { name: cleanName, email: cleanEmail, password: hashedPassword },
       select: { id: true, email: true, name: true },
     });
 

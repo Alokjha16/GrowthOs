@@ -65,3 +65,32 @@ npm run dev
 | | `/api/diagnose/{businessId}/report` | `GET` | Retrieve the latest diagnostic report |
 | **Growth Simulator** | `/api/simulate/{businessId}` | `POST` | What-if scenario simulator (COD reduction, UPI incentives, ROAS targets) |
 | | `/api/simulate/{businessId}/history`| `GET` | Retrieve simulation history for a store |
+
+---
+
+## ⚡ GrowthOS Autopilot Engine (Phase 1 Foundation)
+
+GrowthOS is transitioning from passive diagnostic advice to an autonomous closed-loop optimization system:
+**Find** ➔ **Quantify** ➔ **Fix** ➔ **Verify** ➔ **Alert/Report**.
+
+### Core Architecture Added in Phase 1:
+- **6 Config-Driven Modules** (`src/lib/modules/registry.ts`):
+  1. `ads` (Marketing) — Low-ROAS, wasted spend & CAC optimization.
+  2. `profit` (Finance + Unit Economics) — Loss-making SKUs, margin erosion, price adjustments.
+  3. `inventory` (Inventory) — Stockout risk (<14 days), overstock, automated PO drafts.
+  4. `retention` (Retention) — Lapsed customers, repeat rate lifts, win-back flows.
+  5. `cart-cro` (Technology) — Checkout drop-off points, abandoned cart recovery.
+  6. `fulfillment` (Operations) — Pincode RTO clusters, courier delays, COD to prepaid switches.
+- **Data Models**:
+  - `Subscription` & `Entitlement`: Plan-based entitlement gating (Starter, Growth, Pro).
+  - `AutopilotPreferences`: Global kill switch, 14-day shadow mode, auto-rollback flags, and safety limits.
+  - `Finding`: Problems with deterministic monthly ₹ impact, confidence levels, and input breakdowns.
+  - `PlaybookRun` & `Action`: Execution tracking, before/after state snapshots, idempotency keys.
+  - `Task`: Human fallback items with ready-made drafts (briefs, supplier emails).
+  - `AuditLog`: Immutable change history of all system and human modifications.
+  - `Benchmark`: P25, Median, P75 category metrics for D2C benchmarks.
+  - `AlertLog` & `AlertPreferences`: Email & WhatsApp alerts with deduplication and quiet hours.
+- **Shared Access Check** (`src/lib/access/has-access.ts`):
+  - Unified access boundary `hasAccess(userId, moduleSlug)` and plan limits `canRunSimulation`, `canUseAutonomyLevel`.
+- **Navigation**:
+  - Growth Modules collapsible sidebar section in `dashboard-sidebar.tsx`.

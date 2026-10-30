@@ -1,6 +1,6 @@
 package com.tcet.growthos.service;
 
-import com.tcet.growthos.model.Business;
+import com.tcet.growthos.entity.Business;
 import com.tcet.growthos.repository.BusinessRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

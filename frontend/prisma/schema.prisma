@@ -1,5 +1,8 @@
 // GrowthOS — prisma/schema.prisma
 // PostgreSQL + Supabase Connection Pooler
+// Phase 1: Added Subscription, Entitlement, AutopilotPreferences, Finding,
+//          PlaybookRun, Action, Task, AuditLog, Benchmark, AlertLog,
+//          AlertPreferences, PlaybookAccuracy + storeCategory on Business
 
 generator client {
   provider = "prisma-client-js"
@@ -12,7 +15,7 @@ datasource db {
 }
 
 // ─────────────────────────────────
-// ENUMS
+// ENUMS — original
 // ─────────────────────────────────
 
 enum AnalysisStatus {
@@ -60,6 +63,99 @@ enum FulfillmentMethod {
 }
 
 // ─────────────────────────────────
+// ENUMS — Phase 1 additions
+// ─────────────────────────────────
+
+enum PlanTier {
+  STARTER
+  GROWTH
+  PRO
+}
+
+enum EntitlementType {
+  PLAN
+  MODULE
+}
+
+enum EntitlementStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+}
+
+enum ModuleSlug {
+  ADS
+  PROFIT
+  INVENTORY
+  RETENTION
+  CART_CRO
+  FULFILLMENT
+}
+
+enum FindingConfidence {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum AutonomyLevel {
+  SUGGEST
+  APPROVE_EACH
+  AUTO_RUN
+}
+
+enum PlaybookRunStatus {
+  SHADOW
+  PENDING_APPROVAL
+  APPROVED
+  EXECUTING
+  COMPLETED
+  ROLLED_BACK
+  FAILED
+}
+
+enum ActionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXECUTING
+  COMPLETED
+  FAILED
+  ROLLED_BACK
+  UNDONE
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+  DISMISSED
+}
+
+enum AlertChannel {
+  EMAIL
+  WHATSAPP
+}
+
+enum AlertStatus {
+  SENT
+  READ
+  ACTIONED
+  DISMISSED
+}
+
+enum BenchmarkSource {
+  INDUSTRY_ESTIMATE
+  AGGREGATED_USERS
+}
+
+// ─────────────────────────────────
 // USER & AUTH
 // ─────────────────────────────────
 
@@ -79,6 +175,12 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
+  // Phase 1 additions
+  subscription     Subscription?
+  entitlements     Entitlement[]
+  autopilotPrefs   AutopilotPreferences?
+  alertPrefs       AlertPreferences?
+
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 }
@@ -94,6 +196,7 @@ model Business {
   name                     String
   businessType             BusinessType      @default(ECOMMERCE)
   industry                 String?
+  storeCategory            String?           // "APPAREL" | "BEAUTY" | "HEALTH" | "HOME_DECOR" | "FOOD_BEVERAGE" | "OTHER"
   website                  String?
   description              String?
 
@@ -126,6 +229,14 @@ model Business {
   simulations              Simulation[]
   reports                  Report[]
   snapshots                BusinessSnapshot[]
+
+  // Phase 1 additions
+  findings                 Finding[]
+  playbookRuns             PlaybookRun[]
+  actions                  Action[]
+  tasks                    Task[]
+  auditLogs                AuditLog[]
+  alertLogs                AlertLog[]
 
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
@@ -205,6 +316,9 @@ model Simulation {
   risks            Json?
   opportunities    Json?
   confidenceScore  Int?
+
+  // Phase 1: link to a committed playbook run (for "Commit to this strategy")
+  committedPlaybookRunId String?
 
   business         Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
   createdBy        User?            @relation(fields: [createdById], references: [id], onDelete: SetNull)
@@ -322,4 +436,350 @@ model KnowledgeChunk {
 
   @@index([category])
   @@index([industry])
+}
+
+// ─────────────────────────────────
+// PHASE 1: SUBSCRIPTION & ENTITLEMENTS
+// ─────────────────────────────────
+
+model Subscription {
+  id               String      @id @default(cuid())
+  userId           String      @unique
+  planTier         PlanTier    @default(STARTER)
+  billingCycle     String      @default("monthly")  // "monthly" | "annual"
+  status           String      @default("active")   // "active" | "cancelled" | "paused"
+  currentPeriodEnd DateTime?
+  externalId       String?     // Razorpay subscription id — nullable until wired
+
+  user             User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entitlements     Entitlement[]
+
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@index([userId])
+}
+
+model Entitlement {
+  id             String            @id @default(cuid())
+  userId         String
+  subscriptionId String?
+  type           EntitlementType   // PLAN | MODULE
+  planTier       PlanTier?         // set when type=PLAN
+  moduleSlug     ModuleSlug?       // set when type=MODULE (future standalone path)
+  status         EntitlementStatus @default(ACTIVE)
+  expiresAt      DateTime?
+
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription   Subscription?     @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  createdAt      DateTime          @default(now())
+
+  @@index([userId, status])
+  @@index([subscriptionId])
+}
+
+// ─────────────────────────────────
+// PHASE 1: AUTOPILOT PREFERENCES
+// ─────────────────────────────────
+
+model AutopilotPreferences {
+  id                      String   @id @default(cuid())
+  userId                  String   @unique
+
+  // Kill switch & shadow mode
+  killSwitchActive        Boolean  @default(false)
+  shadowModeActive        Boolean  @default(true)   // New users start in shadow mode
+  shadowModeStartedAt     DateTime @default(now())
+  autoRollbackEnabled     Boolean  @default(false)
+
+  // Guardrail defaults (founder can override)
+  maxBudgetChangePct      Int      @default(20)
+  maxPriceChangePct       Int      @default(10)
+  maxDailyAdSpendShiftPct Int      @default(25)
+
+  // Protected entity ids (campaigns / SKUs the founder marks untouchable)
+  protectedEntityIds      String[] @default([])
+
+  user                    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+// ─────────────────────────────────
+// PHASE 1: FINDINGS
+// ─────────────────────────────────
+
+model Finding {
+  id             String            @id @default(cuid())
+  businessId     String
+  moduleSlug     ModuleSlug
+
+  title          String
+  description    String            @db.Text
+
+  // Money impact — deterministic, NEVER AI-generated
+  moneyImpact    Decimal?          @db.Decimal(14, 2)   // monthly ₹ saved/gained
+  impactFormula  String?           @db.Text             // human-readable formula string
+  impactInputs   Json?                                  // { "adSpend": 62000, "roas": 0.7, ... }
+  impactWindow   String?                                // "last 30 days"
+  confidence     FindingConfidence @default(MEDIUM)
+
+  // State
+  dismissed      Boolean           @default(false)
+  dismissedAt    DateTime?
+  resolvedAt     DateTime?
+
+  // Links
+  playbookRunId  String?
+  taskId         String?
+
+  business       Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([businessId, moduleSlug])
+  @@index([businessId, dismissed])
+}
+
+// ─────────────────────────────────
+// PHASE 1: PLAYBOOK RUNS
+// ─────────────────────────────────
+
+model PlaybookRun {
+  id               String            @id @default(cuid())
+  businessId       String
+  playbookSlug     String            // e.g. "pause-wasting-ad-sets"
+  moduleSlug       ModuleSlug
+  autonomyLevel    AutonomyLevel     @default(SUGGEST)
+  status           PlaybookRunStatus @default(SHADOW)
+
+  // One-tap approval via email/WhatsApp signed link
+  approvalToken    String?           @unique
+  tokenExpiresAt   DateTime?
+  approvedAt       DateTime?
+  approvedBy       String?           // userId
+
+  // Shadow mode log
+  shadowSavedAmount Decimal?         @db.Decimal(14, 2)
+  shadowLog        Json?             // [{ action, wouldHaveDone, estimatedSaving }]
+
+  // Verification schedule
+  baselineSnapshot Json?
+  verifyAt3d       DateTime?
+  verifyAt14d      DateTime?
+  verifyAt28d      DateTime?
+  verificationResults Json?
+
+  // Learning loop
+  predictedImpact  Decimal?          @db.Decimal(14, 2)
+  actualImpact     Decimal?          @db.Decimal(14, 2)
+
+  business         Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  actions          Action[]
+
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([businessId, status])
+  @@index([playbookSlug])
+  @@index([approvalToken])
+}
+
+// ─────────────────────────────────
+// PHASE 1: ACTIONS
+// ─────────────────────────────────
+
+model Action {
+  id              String       @id @default(cuid())
+  businessId      String
+  playbookRunId   String?
+  moduleSlug      ModuleSlug
+  platform        String       // "shopify" | "meta_ads" | "manual"
+  adapterAction   String       // e.g. "PAUSE_AD_SET" | "UPDATE_PRICE" | "ENABLE_PREPAID_ONLY"
+  riskLevel       RiskLevel
+
+  // State snapshot (for rollback & before/after display)
+  beforeState     Json
+  afterState      Json?
+
+  // Money tracking
+  predictedImpact Decimal?     @db.Decimal(14, 2)
+  actualImpact    Decimal?     @db.Decimal(14, 2)
+
+  status          ActionStatus  @default(PENDING)
+  executedAt      DateTime?
+  rolledBackAt    DateTime?
+  rollbackReason  String?
+
+  // Idempotency — same action can NEVER run twice
+  idempotencyKey  String       @unique
+
+  // Audit trail
+  triggeredBy     String       // userId or "system"
+  errorMessage    String?
+
+  business        Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  playbookRun     PlaybookRun? @relation(fields: [playbookRunId], references: [id], onDelete: SetNull)
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([businessId, status])
+  @@index([playbookRunId])
+  @@index([idempotencyKey])
+}
+
+// ─────────────────────────────────
+// PHASE 1: TASKS (human-fallback)
+// ─────────────────────────────────
+
+model Task {
+  id             String      @id @default(cuid())
+  businessId     String
+  moduleSlug     ModuleSlug?
+  playbookRunId  String?
+
+  title          String
+  description    String?     @db.Text
+  draftContent   String?     @db.Text  // ready-made email template / brief / checklist
+  owner          String?               // free-text name or userId
+  dueDate        DateTime?
+  status         TaskStatus  @default(TODO)
+
+  // Tracking
+  targetMetric   String?
+  baselineValue  Decimal?    @db.Decimal(14, 2)
+  expectedImpact Decimal?    @db.Decimal(14, 2)
+  actualImpact   Decimal?    @db.Decimal(14, 2)
+
+  business       Business    @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([businessId, status])
+  @@index([moduleSlug])
+}
+
+// ─────────────────────────────────
+// PHASE 1: AUDIT LOG (immutable)
+// ─────────────────────────────────
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  businessId     String
+  userId         String?
+  actionId       String?
+  playbookRunId  String?
+
+  event          String   // "ACTION_EXECUTED" | "ACTION_ROLLED_BACK" | "KILL_SWITCH_ON" | "APPROVAL_GRANTED" | ...
+  platform       String?  // "shopify" | "meta_ads"
+  entityType     String?  // "ad_set" | "sku" | "price" | "campaign"
+  entityId       String?  // external id on the platform
+  beforeState    Json?
+  afterState     Json?
+  metadata       Json?    // any extra context
+
+  business       Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime @default(now())
+
+  @@index([businessId, createdAt])
+  @@index([actionId])
+  @@index([playbookRunId])
+}
+
+// ─────────────────────────────────
+// PHASE 1: BENCHMARKS
+// ─────────────────────────────────
+
+model Benchmark {
+  id           String          @id @default(cuid())
+  moduleSlug   ModuleSlug
+  category     String          // store category e.g. "APPAREL" | "BEAUTY"
+  metric       String          // e.g. "repeat_rate" | "roas" | "cac" | "rto_rate"
+  p25          Decimal?        @db.Decimal(10, 4)
+  median       Decimal?        @db.Decimal(10, 4)
+  p75          Decimal?        @db.Decimal(10, 4)
+  unit         String?         // "%" | "₹" | "x" | "days"
+  source       BenchmarkSource @default(INDUSTRY_ESTIMATE)
+  sourceLabel  String?         // "Industry estimate — Bain & Co D2C Report 2024"
+  lastUpdated  DateTime        @default(now())
+
+  @@unique([moduleSlug, category, metric])
+  @@index([moduleSlug, category])
+}
+
+// ─────────────────────────────────
+// PHASE 1: ALERT LOG
+// ─────────────────────────────────
+
+model AlertLog {
+  id              String       @id @default(cuid())
+  businessId      String
+  userId          String
+  channel         AlertChannel
+  alertType       String       // "ROAS_DROP" | "STOCK_LOW" | "RTO_SPIKE" | "WEEKLY_DIGEST"
+  moduleSlug      ModuleSlug?
+  subject         String
+  bodyHtml        String?      @db.Text
+  approvalToken   String?      // one-time signed token embedded in alert
+  tokenExpiresAt  DateTime?
+  status          AlertStatus  @default(SENT)
+  sentAt          DateTime     @default(now())
+  // Deduplication — same alert won't repeat within 7 days unless metric worsens
+  dedupKey        String?
+  dedupExpiresAt  DateTime?
+
+  business        Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@index([businessId, alertType, sentAt])
+  @@index([dedupKey])
+  @@index([approvalToken])
+}
+
+// ─────────────────────────────────
+// PHASE 1: ALERT PREFERENCES
+// ─────────────────────────────────
+
+model AlertPreferences {
+  id                           String   @id @default(cuid())
+  userId                       String   @unique
+  emailEnabled                 Boolean  @default(true)
+  whatsappEnabled              Boolean  @default(false)
+  whatsappNumber               String?
+  quietHoursStart              Int?     // 0–23, e.g. 22 (10 pm)
+  quietHoursEnd                Int?     // 0–23, e.g. 8 (8 am)
+  weeklyDigestDay              Int      @default(1)  // 1 = Monday
+
+  // Alert thresholds
+  roasDropThresholdPct         Int      @default(20)
+  stockDaysThreshold           Int      @default(7)
+  rtoSpikeThresholdPct         Int      @default(5)
+  abandonmentSpikeThresholdPct Int      @default(10)
+
+  user                         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt                    DateTime @default(now())
+  updatedAt                    DateTime @updatedAt
+}
+
+// ─────────────────────────────────
+// PHASE 1: LEARNING LOOP
+// ─────────────────────────────────
+
+model PlaybookAccuracy {
+  id             String     @id @default(cuid())
+  playbookSlug   String
+  moduleSlug     ModuleSlug
+  totalRuns      Int        @default(0)
+  accurateRuns   Int        @default(0)   // runs where actual was within 20% of predicted
+  avgAccuracyPct Decimal?   @db.Decimal(6, 2)
+  lastUpdated    DateTime   @default(now())
+
+  @@unique([playbookSlug])
+  @@index([moduleSlug])
 }

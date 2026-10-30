@@ -83,6 +83,7 @@ const PLATFORMS: {
 type FormData = {
   name: string;
   industry: string;
+  storeCategory: string;
   website: string;
   description: string;
   monthlyRevenue: string;
@@ -106,6 +107,8 @@ type ImportedFields = Partial<Record<keyof FormData, boolean>>;
 function simulateImport(platform: Platform): Partial<FormData> {
   const profiles: Record<Platform, Partial<FormData>> = {
     shopify: {
+      industry: "Apparel & Ethnic Wear",
+      storeCategory: "APPAREL",
       monthlyRevenue: "1840000",
       monthlyExpenses: "1120000",
       customersPerMonth: "1470",
@@ -146,6 +149,7 @@ function simulateImport(platform: Platform): Partial<FormData> {
 const initialForm: FormData = {
   name: "",
   industry: "",
+  storeCategory: "APPAREL",
   website: "",
   description: "",
   monthlyRevenue: "",
@@ -455,6 +459,20 @@ export default function OnboardingPage() {
                     className="w-full rounded-[4px] border border-[rgba(255,255,255,0.08)] bg-[#1C1D1F] px-3 py-2 text-[13px] text-[#F1F1F1] placeholder-[#4E4E4E] focus:outline-none focus:border-[#5E6AD2]"
                   />
                 </div>
+                <Select
+                  id="store-category"
+                  name="storeCategory"
+                  label="Benchmark Store Category"
+                  value={form.storeCategory}
+                  onChange={handleChange}
+                >
+                  <option value="APPAREL">Fashion, Apparel & Ethnic Wear</option>
+                  <option value="BEAUTY">Beauty, Cosmetics & Personal Care</option>
+                  <option value="HEALTH">Health, Wellness & Nutrition</option>
+                  <option value="HOME_DECOR">Home Decor & Furnishing</option>
+                  <option value="FOOD_BEVERAGE">Food, Beverage & Gourmet</option>
+                  <option value="OTHER">Other E-Commerce D2C</option>
+                </Select>
                 <div>
                   <FieldLabel htmlFor="website" label="Store Domain" fieldKey="website" optional />
                   <input

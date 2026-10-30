@@ -1,6 +1,6 @@
 package com.tcet.growthos.repository;
 
-import com.tcet.growthos.model.Business;
+import com.tcet.growthos.entity.Business;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

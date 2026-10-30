@@ -1,5 +1,7 @@
 // prisma/seed.ts — GrowthOS demo seed
 // Creates demo@growthos.ai / Test@1234 with Rang Studio Indian D2C brand data
+// Phase 1: Added Subscription, Entitlement, AutopilotPreferences, Findings,
+//          Benchmarks, AlertPreferences, and PlaybookAccuracy records.
 
 import { PrismaClient } from "@prisma/client";
 import bcryptjs from "bcryptjs";
@@ -28,6 +30,7 @@ async function main() {
     name:                     "Rang Studio",
     businessType:             "ECOMMERCE" as const,
     industry:                 "Apparel & Ethnic Wear",
+    storeCategory:            "APPAREL",
     website:                  "https://rangstudio.in",
     description:              "Premium Indian ethnic wear D2C brand — kurtas, co-ords, and festive collections. Manufactured in Jaipur, shipped pan-India via Shiprocket. Target: women 22–40, Tier 1 & 2 cities.",
     monthlyRevenue:           1840000,   // ₹18.4L
@@ -57,13 +60,12 @@ async function main() {
   await db.businessSnapshot.deleteMany({ where: { businessId: business.id } });
 
   const snapshots = [
-    // oldest → newest (month offset from today)
-    { m: 5, rev: 1050000, exp: 680000,  cust: 900,  repeat: 24, aov: 1168, cac: 310, roas: 2.0, cart: 76, cod: 71, rto: 18, score: 48 },
-    { m: 4, rev: 1220000, exp: 770000,  cust: 1050, repeat: 25, aov: 1162, cac: 330, roas: 2.1, cart: 75, cod: 69, rto: 19, score: 52 },
-    { m: 3, rev: 1410000, exp: 880000,  cust: 1180, repeat: 26, aov: 1195, cac: 345, roas: 2.2, cart: 74, cod: 67, rto: 20, score: 55 },
-    { m: 2, rev: 1580000, exp: 970000,  cust: 1290, repeat: 27, aov: 1225, cac: 358, roas: 2.3, cart: 73, cod: 65, rto: 21, score: 58 },
-    { m: 1, rev: 1710000, exp: 1045000, cust: 1380, repeat: 27, aov: 1239, cac: 370, roas: 2.35,cart: 72, cod: 63, rto: 22, score: 60 },
-    { m: 0, rev: 1840000, exp: 1120000, cust: 1470, repeat: 28, aov: 1250, cac: 380, roas: 2.4, cart: 71, cod: 62, rto: 22, score: 62 },
+    { m: 5, rev: 1050000, exp: 680000,  cust: 900,  repeat: 24, aov: 1168, cac: 310, roas: 2.0,  cart: 76, cod: 71, rto: 18, score: 48 },
+    { m: 4, rev: 1220000, exp: 770000,  cust: 1050, repeat: 25, aov: 1162, cac: 330, roas: 2.1,  cart: 75, cod: 69, rto: 19, score: 52 },
+    { m: 3, rev: 1410000, exp: 880000,  cust: 1180, repeat: 26, aov: 1195, cac: 345, roas: 2.2,  cart: 74, cod: 67, rto: 20, score: 55 },
+    { m: 2, rev: 1580000, exp: 970000,  cust: 1290, repeat: 27, aov: 1225, cac: 358, roas: 2.3,  cart: 73, cod: 65, rto: 21, score: 58 },
+    { m: 1, rev: 1710000, exp: 1045000, cust: 1380, repeat: 27, aov: 1239, cac: 370, roas: 2.35, cart: 72, cod: 63, rto: 22, score: 60 },
+    { m: 0, rev: 1840000, exp: 1120000, cust: 1470, repeat: 28, aov: 1250, cac: 380, roas: 2.4,  cart: 71, cod: 62, rto: 22, score: 62 },
   ];
 
   for (const s of snapshots) {
@@ -72,19 +74,19 @@ async function main() {
     date.setDate(1);
     await db.businessSnapshot.create({
       data: {
-        businessId:             business.id,
-        revenue:                s.rev,
-        expenses:               s.exp,
-        customers:              s.cust,
-        repeatRate:             s.repeat,
-        healthScore:            s.score,
-        averageOrderValue:      s.aov,
+        businessId:              business.id,
+        revenue:                 s.rev,
+        expenses:                s.exp,
+        customers:               s.cust,
+        repeatRate:              s.repeat,
+        healthScore:             s.score,
+        averageOrderValue:       s.aov,
         customerAcquisitionCost: s.cac,
-        returnOnAdSpend:        s.roas,
-        cartAbandonmentRate:    s.cart,
-        codRate:                s.cod,
-        rtoRate:                s.rto,
-        createdAt:              date,
+        returnOnAdSpend:         s.roas,
+        cartAbandonmentRate:     s.cart,
+        codRate:                 s.cod,
+        rtoRate:                 s.rto,
+        createdAt:               date,
       },
     });
   }
@@ -136,11 +138,169 @@ async function main() {
   }
   console.log(`✅ Seeded ${knowledgeData.length} RAG knowledge chunks for Indian D2C benchmarks`);
 
+  // ── 5. Phase 1: Subscription & Entitlement (GROWTH Plan) ───────────────────
+  const subscription = await db.subscription.upsert({
+    where:  { userId: user.id },
+    update: { planTier: "GROWTH", status: "active", billingCycle: "monthly" },
+    create: {
+      userId:           user.id,
+      planTier:         "GROWTH",
+      billingCycle:     "monthly",
+      status:           "active",
+      currentPeriodEnd: new Date(Date.now() + 30 * 86400000),
+    },
+  });
+
+  await db.entitlement.deleteMany({ where: { userId: user.id } });
+  await db.entitlement.create({
+    data: {
+      userId:         user.id,
+      subscriptionId: subscription.id,
+      type:           "PLAN",
+      planTier:       "GROWTH",
+      status:         "ACTIVE",
+    },
+  });
+  console.log(`✅ Seeded Growth Plan Subscription & Active Entitlement for user`);
+
+  // ── 6. Phase 1: Autopilot & Alert Preferences ──────────────────────────────
+  await db.autopilotPreferences.upsert({
+    where:  { userId: user.id },
+    update: { shadowModeActive: true, killSwitchActive: false },
+    create: {
+      userId:                  user.id,
+      killSwitchActive:        false,
+      shadowModeActive:        true,
+      shadowModeStartedAt:     new Date(Date.now() - 3 * 86400000),
+      autoRollbackEnabled:     false,
+      maxBudgetChangePct:      20,
+      maxPriceChangePct:       10,
+      maxDailyAdSpendShiftPct: 25,
+      protectedEntityIds:      [],
+    },
+  });
+
+  await db.alertPreferences.upsert({
+    where:  { userId: user.id },
+    update: { emailEnabled: true },
+    create: {
+      userId:                       user.id,
+      emailEnabled:                 true,
+      whatsappEnabled:              false,
+      weeklyDigestDay:              1,
+      roasDropThresholdPct:         20,
+      stockDaysThreshold:           7,
+      rtoSpikeThresholdPct:         5,
+      abandonmentSpikeThresholdPct: 10,
+    },
+  });
+  console.log(`✅ Seeded Autopilot & Alert Preferences (Shadow Mode = ON, Kill Switch = OFF)`);
+
+  // ── 7. Phase 1: Benchmarks (Seeded for APPAREL Category) ───────────────────
+  const benchmarksData = [
+    { moduleSlug: "ADS" as const,         category: "APPAREL", metric: "roas",                  p25: 1.8,  median: 2.8,  p75: 4.2,  unit: "x",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Meta D2C India Benchmark 2024" },
+    { moduleSlug: "ADS" as const,         category: "APPAREL", metric: "cac",                   p25: 280,  median: 420,  p75: 680,  unit: "₹",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Bain & Co D2C India Report 2024" },
+    { moduleSlug: "PROFIT" as const,      category: "APPAREL", metric: "gross_margin",          p25: 45,   median: 58,   p75: 65,   unit: "%",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Bain & Co D2C India Report 2024" },
+    { moduleSlug: "PROFIT" as const,      category: "APPAREL", metric: "contribution_margin",   p25: 14,   median: 22,   p75: 32,   unit: "%",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Bain & Co D2C India Report 2024" },
+    { moduleSlug: "PROFIT" as const,      category: "APPAREL", metric: "aov",                   p25: 900,  median: 1350, p75: 2100, unit: "₹",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Unicommerce D2C Report 2024" },
+    { moduleSlug: "INVENTORY" as const,   category: "APPAREL", metric: "inventory_turnover",    p25: 3.5,  median: 6.0,  p75: 9.0,  unit: "x",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Unicommerce Inventory Report 2024" },
+    { moduleSlug: "INVENTORY" as const,   category: "APPAREL", metric: "days_of_stock",         p25: 21,   median: 35,   p75: 60,   unit: "days", source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Unicommerce Inventory Report 2024" },
+    { moduleSlug: "RETENTION" as const,   category: "APPAREL", metric: "repeat_rate",           p25: 18,   median: 28,   p75: 40,   unit: "%",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Klaviyo India D2C Benchmark 2024" },
+    { moduleSlug: "RETENTION" as const,   category: "APPAREL", metric: "ltv_cac_ratio",         p25: 1.5,  median: 2.5,  p75: 4.0,  unit: "x",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Klaviyo India D2C Benchmark 2024" },
+    { moduleSlug: "CART_CRO" as const,    category: "APPAREL", metric: "cart_abandonment_rate", p25: 55,   median: 68,   p75: 80,   unit: "%",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Razorpay D2C Checkout Report 2024" },
+    { moduleSlug: "CART_CRO" as const,    category: "APPAREL", metric: "checkout_conversion",   p25: 1.2,  median: 2.0,  p75: 3.5,  unit: "%",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Razorpay D2C Checkout Report 2024" },
+    { moduleSlug: "FULFILLMENT" as const, category: "APPAREL", metric: "rto_rate",              p25: 10,   median: 15,   p75: 22,   unit: "%",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Shiprocket Logistics Report 2024" },
+    { moduleSlug: "FULFILLMENT" as const, category: "APPAREL", metric: "cod_rate",              p25: 40,   median: 58,   p75: 72,   unit: "%",    source: "INDUSTRY_ESTIMATE" as const, sourceLabel: "Industry estimate — Shiprocket Logistics Report 2024" },
+  ];
+
+  for (const bm of benchmarksData) {
+    await db.benchmark.upsert({
+      where: {
+        moduleSlug_category_metric: {
+          moduleSlug: bm.moduleSlug,
+          category:   bm.category,
+          metric:     bm.metric,
+        },
+      },
+      update: bm,
+      create: bm,
+    });
+  }
+  console.log(`✅ Seeded ${benchmarksData.length} category benchmarks for Apparel & Ethnic Wear`);
+
+  // ── 8. Phase 1: Findings (Deterministic Money Impacts) ──────────────────────
+  await db.finding.deleteMany({ where: { businessId: business.id } });
+
+  const findingsData = [
+    {
+      businessId:    business.id,
+      moduleSlug:    "ADS" as const,
+      title:         "3 Meta ad sets spent ₹62,000 at ROAS 0.7 — below break-even",
+      description:   "Three ad sets in your 'Ethnic Festive Collection' campaign have a ROAS of 0.7x over the last 30 days. Your break-even ROAS (based on 39% gross margin) is 2.56x. Pausing these ad sets would stop ₹41,000/month of guaranteed losses.",
+      moneyImpact:   41000,
+      impactFormula: "wasted_spend = ad_sets_spend × (1 - roas / breakeven_roas)",
+      impactInputs:  { adSetsSpend: 62000, roas: 0.7, breakevenRoas: 2.56, grossMarginPct: 39 },
+      impactWindow:  "last 30 days",
+      confidence:    "HIGH" as const,
+      dismissed:     false,
+    },
+    {
+      businessId:    business.id,
+      moduleSlug:    "FULFILLMENT" as const,
+      title:         "COD orders to 14 pincodes have 38% RTO — ₹33,000/month loss",
+      description:   "14 pincodes across UP, Bihar, and Rajasthan show a 38% RTO rate on COD orders — more than double your average. Each RTO costs ₹240 in forward + reverse freight. Switching these pincodes to prepaid-only would eliminate this loss.",
+      moneyImpact:   33000,
+      impactFormula: "rto_loss = high_rto_cod_orders × rto_rate × avg_rto_cost",
+      impactInputs:  { highRtoCodOrders: 362, rtoRate: 0.38, avgRtoCost: 240 },
+      impactWindow:  "last 30 days",
+      confidence:    "HIGH" as const,
+      dismissed:     false,
+    },
+    {
+      businessId:    business.id,
+      moduleSlug:    "RETENTION" as const,
+      title:         "1,240 customers haven't reordered in 90+ days — ₹1.1L/month win-back opportunity",
+      description:   "1,240 customers who purchased between 90 and 180 days ago have not placed a second order. Based on your average order value of ₹1,250 and a typical 8% win-back conversion rate, a targeted WhatsApp campaign could recover approximately ₹1.1L/month.",
+      moneyImpact:   110000,
+      impactFormula: "winback_revenue = lapsed_customers × winback_conversion_rate × aov",
+      impactInputs:  { lapsedCustomers: 1240, winbackConversionRate: 0.071, aov: 1250 },
+      impactWindow:  "last 90 days",
+      confidence:    "MEDIUM" as const,
+      dismissed:     false,
+    },
+  ];
+
+  for (const f of findingsData) {
+    await db.finding.create({ data: f });
+  }
+  console.log(`✅ Seeded ${findingsData.length} findings with quantified monthly money impact`);
+
+  // ── 9. Phase 1: Playbook Accuracy Baseline ─────────────────────────────────
+  const playbookAccuracies = [
+    { playbookSlug: "pause-wasting-ad-sets",          moduleSlug: "ADS" as const },
+    { playbookSlug: "prepaid-only-high-rto-pincodes", moduleSlug: "FULFILLMENT" as const },
+    { playbookSlug: "winback-campaign-lapsed",        moduleSlug: "RETENTION" as const },
+    { playbookSlug: "enable-abandoned-cart-recovery", moduleSlug: "CART_CRO" as const },
+    { playbookSlug: "reorder-draft-low-stock",        moduleSlug: "INVENTORY" as const },
+    { playbookSlug: "reprice-loss-making-skus",       moduleSlug: "PROFIT" as const },
+  ];
+
+  for (const pa of playbookAccuracies) {
+    await db.playbookAccuracy.upsert({
+      where:  { playbookSlug: pa.playbookSlug },
+      update: pa,
+      create: { ...pa, totalRuns: 0, accurateRuns: 0, avgAccuracyPct: null },
+    });
+  }
+  console.log(`✅ Seeded PlaybookAccuracy records for 6 core playbooks`);
+
   console.log("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
   console.log("🚀 Seed complete!");
-  console.log("   Email:    demo@growthos.ai");
-  console.log("   Password: Test@1234");
-  console.log("   Store:    Rang Studio — ₹18.4L/mo · COD 62% · RTO 22%");
+  console.log("   Email:        demo@growthos.ai");
+  console.log("   Password:     Test@1234");
+  console.log("   Store:        Rang Studio — ₹18.4L/mo · COD 62% · RTO 22%");
+  console.log("   Subscription: Growth Plan (Active)");
+  console.log("   Autopilot:    Shadow Mode ON · Kill Switch OFF");
   console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
 }
 

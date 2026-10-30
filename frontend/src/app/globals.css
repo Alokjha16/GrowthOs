@@ -258,3 +258,313 @@
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
+
+/* ==========================================================================
+   GROWTHOS LIGHT THEME SYSTEM
+   Carefully tuned to maintain high contrast, professional aesthetics, and
+   100% text visibility with zero breaking.
+   ========================================================================== */
+
+html.light,
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+html.light body,
+html[data-theme="light"] body {
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+}
+
+/* Light Mode Custom Scrollbars */
+html.light ::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+/* Base Light Mode Backgrounds */
+html.light .bg-\[\#090A0F\],
+html.light [class*="bg-[#090A0F]"] {
+  background-color: #F8FAFC !important;
+}
+
+html.light .bg-zinc-950,
+html.light [class*="bg-zinc-950"] {
+  background-color: #FFFFFF !important;
+}
+
+html.light .bg-zinc-900,
+html.light [class*="bg-zinc-900"] {
+  background-color: #FFFFFF !important;
+}
+
+html.light [class*="bg-zinc-950/80"],
+html.light [class*="bg-zinc-950/70"],
+html.light [class*="bg-zinc-950/60"],
+html.light [class*="bg-zinc-900/80"],
+html.light [class*="bg-zinc-900/60"],
+html.light [class*="bg-zinc-900/50"],
+html.light [class*="bg-zinc-900/40"] {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+html.light .bg-zinc-800,
+html.light [class*="bg-zinc-800"] {
+  background-color: #F1F5F9 !important;
+}
+
+html.light .bg-\[\#141517\] {
+  background-color: #FFFFFF !important;
+}
+
+/* Light Mode Header & Navbar */
+html.light header {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Brand Logo Badge in Light Mode */
+html.light .brand-logo-badge {
+  background: #090A0F;
+  padding: 3px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.15);
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Light Mode Borders & Dividers */
+html.light * {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+html.light [class*="border-white/"],
+html.light [class*="border-white\\["],
+html.light [class*="border-zinc-800"],
+html.light [class*="border-zinc-700"],
+html.light [class*="border-[rgba(255,255,255"] {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Light Mode Cards, Glass Panels & Shadows */
+html.light .glass-panel {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06) !important;
+}
+
+html.light .glass-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 8px 30px 0 rgba(15, 23, 42, 0.06) !important;
+}
+
+html.light [class*="rounded-2xl"][class*="border"],
+html.light [class*="rounded-xl"][class*="border"] {
+  background-color: #FFFFFF;
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.05);
+}
+
+/* Light Mode Text Legibility (No invisible text!) */
+/* Heading and primary text */
+html.light .text-white:not(
+  button.bg-orange-500,
+  button.bg-orange-500 *,
+  button.bg-gradient-to-r,
+  button.bg-gradient-to-r *,
+  button[class*="from-orange"],
+  button[class*="from-orange"] *,
+  button.bg-rose-600,
+  button.bg-rose-600 *,
+  [class*="bg-orange-500"] *,
+  [class*="bg-rose-600"] *,
+  [class*="from-orange-500"][class*="to-amber-500"] *
+) {
+  color: #0F172A !important;
+}
+
+html.light .text-zinc-100 {
+  color: #0F172A !important;
+}
+
+html.light .text-zinc-200 {
+  color: #1E293B !important;
+}
+
+html.light .text-zinc-300 {
+  color: #334155 !important;
+}
+
+html.light .text-zinc-400 {
+  color: #64748B !important;
+}
+
+html.light .text-zinc-500 {
+  color: #64748B !important;
+}
+
+html.light .text-zinc-600 {
+  color: #94A3B8 !important;
+}
+
+html.light .text-\[\#F1F1F1\] {
+  color: #0F172A !important;
+}
+
+html.light .text-\[\#8A8A8A\] {
+  color: #64748B !important;
+}
+
+/* High Contrast Accent Colors in Light Mode */
+html.light .text-orange-300 {
+  color: #C2410C !important;
+}
+html.light .text-orange-400 {
+  color: #EA580C !important;
+}
+html.light .text-amber-300 {
+  color: #B45309 !important;
+}
+html.light .text-amber-400 {
+  color: #D97706 !important;
+}
+html.light .text-rose-300 {
+  color: #BE123C !important;
+}
+html.light .text-rose-400 {
+  color: #E11D48 !important;
+}
+html.light .text-emerald-300 {
+  color: #047857 !important;
+}
+html.light .text-emerald-400 {
+  color: #059669 !important;
+}
+html.light .text-blue-300 {
+  color: #1D4ED8 !important;
+}
+html.light .text-blue-400 {
+  color: #2563EB !important;
+}
+html.light .text-violet-300 {
+  color: #6D28D9 !important;
+}
+html.light .text-violet-400 {
+  color: #7C3AED !important;
+}
+
+/* Light Mode Gradients & Headlines */
+html.light .gradient-text {
+  background: linear-gradient(135deg, #0F172A 0%, #EA580C 60%, #C2410C 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+html.light .gradient-text-warm {
+  background: linear-gradient(135deg, #9A3412 0%, #EA580C 50%, #D97706 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+html.light .pain-stat {
+  background: linear-gradient(135deg, #D97706 0%, #DC2626 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+}
+
+html.light .traction-strip {
+  background: linear-gradient(90deg,
+    rgba(249,115,22,0.06) 0%,
+    rgba(245,158,11,0.04) 50%,
+    rgba(249,115,22,0.06) 100%
+  ) !important;
+  border-top: 1px solid rgba(249,115,22,0.15) !important;
+  border-bottom: 1px solid rgba(249,115,22,0.15) !important;
+}
+
+/* Light Mode Comparison Grid */
+html.light .comparison-highlight {
+  background: linear-gradient(180deg, rgba(249,115,22,0.08) 0%, rgba(245,158,11,0.04) 100%) !important;
+  border-left: 2px solid rgba(249,115,22,0.5) !important;
+  border-right: 2px solid rgba(249,115,22,0.5) !important;
+}
+
+/* Before & After Cards in Light Mode */
+html.light [class*="border-rose-500/20"] {
+  background-color: #FFF5F5 !important;
+  border-color: #FECDD3 !important;
+}
+html.light [class*="border-orange-500/20"] {
+  background-color: #FFF7ED !important;
+  border-color: #FED7AA !important;
+}
+
+/* Light Mode Ambient Glow Orbs */
+html.light [class*="blur-[140px]"],
+html.light [class*="blur-[120px]"],
+html.light [class*="blur-3xl"] {
+  opacity: 0.25 !important;
+  mix-blend-mode: multiply !important;
+}
+
+/* Form Controls in Light Mode */
+html.light input,
+html.light select,
+html.light textarea {
+  background-color: #FFFFFF !important;
+  border: 1px solid #CBD5E1 !important;
+  color: #0F172A !important;
+}
+html.light input:focus,
+html.light select:focus,
+html.light textarea:focus {
+  border-color: #F97316 !important;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15) !important;
+}
+html.light input::placeholder {
+  color: #94A3B8 !important;
+}
+
+/* Light Mode Buttons */
+html.light button[class*="bg-zinc-800"] {
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+}
+html.light button[class*="bg-zinc-800"]:hover {
+  background-color: #F8FAFC !important;
+  border-color: #94A3B8 !important;
+}
+
+html.light button[class*="bg-transparent"] {
+  color: #334155 !important;
+}
+html.light button[class*="bg-transparent"]:hover {
+  background-color: rgba(0, 0, 0, 0.05) !important;
+  color: #0F172A !important;
+}
+
+/* Dashboard Sidebar in Light Mode */
+html.light aside {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-right: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 1px 0 6px 0 rgba(0, 0, 0, 0.02) !important;
+}
+html.light aside a:hover {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+html.light aside [class*="bg-zinc-900/50"] {
+  background-color: #F1F5F9 !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}

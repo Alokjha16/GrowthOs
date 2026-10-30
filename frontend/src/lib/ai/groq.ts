@@ -10,7 +10,7 @@ export const groq =
 
 if (process.env.NODE_ENV !== "production") globalForGroq.groq = groq;
 
-export const GROQ_MODEL = process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile";
+export const GROQ_MODEL = process.env.GROQ_MODEL ?? "openai/gpt-oss-120b";
 
 /** Retry a Groq call up to `maxRetries` times on rate-limit (429) errors */
 export async function withRetry<T>(
