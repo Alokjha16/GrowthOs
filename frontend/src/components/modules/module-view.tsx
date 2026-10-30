@@ -204,7 +204,7 @@ export function ModuleView({
 
       {/* Headline Metric Card: Monthly Leakage */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="bg-gradient-to-br from-zinc-900 via-orange-950/20 to-zinc-900 border-orange-500/30 relative overflow-hidden">
+        <Card className="bg-gradient-to-br from-zinc-900 via-orange-950/20 to-zinc-900 border-orange-500/30 relative overflow-hidden shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-orange-400">
@@ -216,9 +216,9 @@ export function ModuleView({
               <span className="text-3xl font-extrabold text-white">
                 {totalLeakage > 0 ? formatCurrency(totalLeakage) : "₹0"}
               </span>
-              <span className="text-xs text-zinc-400 ml-1.5">/ month</span>
+              <span className="text-xs text-zinc-400 ml-1.5 font-medium">/ month</span>
             </div>
-            <p className="text-[11px] text-zinc-400 mt-2">
+            <p className="text-[11px] text-zinc-400 mt-2 font-medium">
               Calculated across {activeFindings.length} active detected issue
               {activeFindings.length === 1 ? "" : "s"} using deterministic connector formulas.
             </p>

@@ -365,6 +365,23 @@ html.light .glass-card {
   box-shadow: 0 8px 30px 0 rgba(15, 23, 42, 0.06) !important;
 }
 
+/* Light mode override for dark/black tinted gradients so cards look crisp and clean */
+html.light [class*="from-zinc-900"],
+html.light [class*="to-zinc-900"],
+html.light [class*="via-orange-950"],
+html.light [class*="from-orange-950"],
+html.light [class*="to-zinc-950"],
+html.light [class*="via-amber-950"] {
+  background-image: none !important;
+  background-color: #FFFFFF !important;
+}
+
+/* Give highlighted metric cards a soft, beautiful warm accent in light mode */
+html.light [class*="border-orange-500"] {
+  border-color: rgba(249, 115, 22, 0.3) !important;
+  background-color: #FFFDF9 !important;
+}
+
 html.light [class*="rounded-2xl"][class*="border"],
 html.light [class*="rounded-xl"][class*="border"] {
   background-color: #FFFFFF;
