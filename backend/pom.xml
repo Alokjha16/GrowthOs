@@ -11,6 +11,7 @@
 	<groupId>com.tcet.growthos</groupId>
 	<artifactId>growthos-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
 	<name>growthos-backend</name>
 	<description>GrowthOS Spring Boot Backend REST APIs</description>
 
@@ -25,6 +26,13 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<!-- Embedded Tomcat provided for WAR deployment -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Spring Boot Validation -->
