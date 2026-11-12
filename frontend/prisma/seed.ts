@@ -3,7 +3,7 @@
 // Phase 1: Added Subscription, Entitlement, AutopilotPreferences, Findings,
 //          Benchmarks, AlertPreferences, and PlaybookAccuracy records.
 
-import { PrismaClient } from "@prisma/client";
+lkjimport { PrismaClient } from "@prisma/client";
 import bcryptjs from "bcryptjs";
 
 // Seeds must use DIRECT_URL (port 5432 session pooler)
